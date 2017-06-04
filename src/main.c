@@ -7,9 +7,14 @@
 #define MEM_LIM 64*1024
 
 typedef struct {
+byte op;
+byte arg;
+} inst;
+
+typedef struct {
     byte a;
     byte x;
-    byte ir;
+    inst ir;
     byte sp;
     byte pc;
     byte r1;
@@ -29,8 +34,10 @@ byte sub(byte a, byte b) {
     return a-b;
 }
 
-int assemble() {
+int assemble(FILE *fp) {
+while () {
 
+}
 }
 
 int main() {
