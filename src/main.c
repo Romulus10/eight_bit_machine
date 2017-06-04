@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../assembler/main.h"
+
 #define byte char
 #define MEM_LIM 64*1024
 
@@ -25,6 +27,10 @@ byte add(byte a, byte b) {
 
 byte sub(byte a, byte b) {
     return a-b;
+}
+
+int assemble() {
+
 }
 
 int main() {
