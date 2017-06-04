@@ -15,6 +15,8 @@ typedef struct {
     byte r3;
     byte r4;
     byte *memory;
+    byte *in_memory;
+    byte *out_memory;
 } machine;
 
 byte add(byte a, byte b) {
@@ -37,7 +39,9 @@ int main() {
         .r2 = 0,
         .r3 = 0,
         .r4 = 0,
-        .memory = malloc(MEM_LIM*sizeof(byte))
+        .memory = malloc(MEM_LIM*sizeof(byte)),
+        .in_memory = malloc(MEM_LIM*sizeof(byte)),
+        .out_memory = malloc(MEM_LIM*sizeof(byte))
     };
     return 0;
 }
