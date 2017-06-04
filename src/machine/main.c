@@ -1,9 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #define byte char
-#define MEM_LIM 64*1024*sizeof(byte)
+#define MEM_LIM 64*1024
 
-typedef machine struct {
+typedef struct {
     byte a;
     byte x;
     byte ir;
@@ -17,7 +18,7 @@ typedef machine struct {
 } machine;
 
 byte add(byte a, byte b) {
-    return a-b;
+    return a+b;
 }
 
 byte sub(byte a, byte b) {
@@ -36,7 +37,7 @@ int main() {
         .r2 = 0,
         .r3 = 0,
         .r4 = 0,
-        .memory = malloc(MEM_LIM)
+        .memory = malloc(MEM_LIM*sizeof(byte))
     };
     return 0;
 }
