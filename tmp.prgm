@@ -1,1 +1,0 @@
-jmp 19 add 1 add 1 out_n add 1 add 2 out_n sub 5 out_n out_n add 5 out_n out_n save 0 load 1 out_n load 0 out_n set 97 out end 

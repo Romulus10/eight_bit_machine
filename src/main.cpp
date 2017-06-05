@@ -10,7 +10,7 @@ using namespace std;
 #define SUCCESS true
 #define FAILURE false
 
-#define MEM_LIM 64 * 1024
+#define MEM_LIM 32767
 #define STACK_SIZE 512
 
 #define NOP 0
@@ -38,6 +38,11 @@ typedef struct inst {
   short arg2;
 } inst;
 
+typedef struct label {
+  string text;
+  short addr;
+} label;
+
 typedef struct machine {
   short a;
   short x;
@@ -57,9 +62,7 @@ static inst line[MEM_LIM];
 
 static short stack[STACK_SIZE];
 
-short add(short a, short b) { return a + b; }
-
-short sub(short a, short b) { return a - b; }
+static label list[1024];
 
 int assemble() {
   short count;
@@ -109,34 +112,75 @@ int assemble() {
       line[count].op = SET;
       file >> y;
       line[count].arg1 = y;
-    } else if (x == "kp") {
-      line[count].op = KP;
-      file >> y;
-      line[count].arg1 = y;
     }
     count++;
   }
   return SUCCESS;
 }
 
-int preprocess(char *filename) {
+int branch() {
+  ifstream in("tmp.prgm");
+  short addr = 0, ind = 0;
+  string instr;
+  while (!in.eof()) {
+    in >> instr;
+    if (instr == "lbl") {
+      in >> instr;
+      list[ind].text = instr;
+      list[ind].addr = addr;
+      ind++;
+    }
+    addr++;
+  }
+  in.close();
+}
+
+int format(char *filename) {
   ifstream in(filename);
   ofstream out("tmp.prgm");
   string str, str1;
   while (!in.eof()) {
     in >> str;
-
     if (str[0] == '\'') {
       out << ((short)str[1]);
     } else if (str == "\n") {
       continue;
-    }else {
+    } else {
       out << str;
     }
     out << " ";
   }
+  branch();
+  // This line until the end is very broken.
+  in.clear();
+  in.seekg(0, ios::beg);
+  out.flush();
+  out.clear();
+  out.seekp(0, ios::beg);
+  while (!in.eof()) {
+    in >> str;
+    if (str == "jmp") {
+      out << str;
+      out << " ";
+      in >> str1;
+      for (short i = 0; i < 1024; i++) {
+        if (str1 == list[i].text) {
+          out << list[i].addr;
+          out << " ";
+        }
+      }
+    } else {
+      out << str;
+      out << " ";
+    }
+  }
   in.close();
   out.close();
+  return SUCCESS;
+}
+
+int preprocess(char *filename) {
+  format(filename);
   return SUCCESS;
 }
 

@@ -13,4 +13,4 @@ cleanup:
 	rm tmp.txt
 
 clean:
-	rm -rf build
+	rm -rf machine
