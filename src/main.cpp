@@ -69,7 +69,7 @@ int assemble() {
   string x;
   short y;
   ifstream file;
-  file.open("tmp.prgm");
+  file.open("tmp2.prgm");
   while (!file.eof()) {
     file >> x;
     if (x == "end") {
@@ -133,6 +133,7 @@ int branch() {
     addr++;
   }
   in.close();
+  return 0;
 }
 
 int format(char *filename) {
@@ -151,12 +152,10 @@ int format(char *filename) {
     out << " ";
   }
   branch();
-  // This line until the end is very broken.
-  in.clear();
-  in.seekg(0, ios::beg);
-  out.flush();
-  out.clear();
-  out.seekp(0, ios::beg);
+  in.close();
+  out.close();
+  in.open("tmp.prgm");
+  out.open("tmp2.prgm");
   while (!in.eof()) {
     in >> str;
     if (str == "jmp") {

@@ -17,4 +17,8 @@ load 0
 out_n
 set 'a'
 out
+jmp test
+set 'b'
+lbl test
+out
 end
