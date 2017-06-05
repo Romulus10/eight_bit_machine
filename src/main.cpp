@@ -1,63 +1,197 @@
 using namespace std;
 
-#include <iostream.h>
+#include <fstream>
+#include <iostream>
+
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../assembler/main.h"
+#define SUCCESS true
+#define FAILURE false
 
-#define byte char
-#define MEM_LIM 64*1024
+#define MEM_LIM 64 * 1024
+#define STACK_SIZE 512
 
-typedef struct {
-byte op;
-byte arg;
+#define NOP 0
+#define OUT 1
+#define IN 2
+#define OUT_N 3
+#define IN_N 4
+#define ADD 5
+#define SUB 6
+#define JMP 7
+#define JEZ 8
+#define JGZ 9
+#define JLZ 10
+#define JNZ 11
+#define MOVE 12
+#define LOAD 13
+#define SAVE 14
+#define SET 15
+#define KP 16
+#define END 99
+
+typedef struct inst {
+  short op;
+  short arg1;
+  short arg2;
 } inst;
 
-typedef struct {
-    byte a;
-    byte x;
-    inst ir;
-    byte sp;
-    byte pc;
-    byte r1;
-    byte r2;
-    byte r3;
-    byte r4;
-    byte *memory;
-    byte *in_memory;
-    byte *out_memory;
+typedef struct machine {
+  short a;
+  short x;
+  inst ir;
+  short sp;
+  short pc;
+  short *memory;
 } machine;
 
-byte add(byte a, byte b) {
-    return a+b;
+static machine mech;
+static inst line[MEM_LIM];
+
+#define STACK_PUSH(A) (stack[mech.sp++] = A)
+#define STACK_POP() (stack[--mech.sp])
+#define STACK_EMPTY() (mech.sp == 0)
+#define STACK_FULL() (mech.sp == STACK_SIZE)
+
+static short stack[STACK_SIZE];
+
+short add(short a, short b) { return a + b; }
+
+short sub(short a, short b) { return a - b; }
+
+int assemble() {
+  short count;
+  string x;
+  short y;
+  ifstream file;
+  file.open("tmp.prgm");
+  while (!file.eof()) {
+    file >> x;
+    if (x == "end") {
+      line[count].op = END;
+    } else if (x == "add") {
+      line[count].op = ADD;
+      file >> y;
+      line[count].arg1 = y;
+    } else if (x == "sub") {
+      line[count].op = SUB;
+      file >> y;
+      line[count].arg1 = y;
+    } else if (x == "out") {
+      line[count].op = OUT;
+    } else if (x == "out_n") {
+      line[count].op = OUT_N;
+    } else if (x == "in") {
+      line[count].op = OUT;
+    } else if (x == "in_n") {
+      line[count].op = OUT_N;
+    } else if (x == "jmp") {
+      line[count].op = JMP;
+      file >> y;
+      line[count].arg1 = y - 1;
+    } else if (x == "move") {
+      line[count].op = MOVE;
+      file >> y;
+      line[count].arg1 = y;
+      file >> y;
+      line[count].arg2 = y;
+    } else if (x == "load") {
+      line[count].op = LOAD;
+      file >> y;
+      line[count].arg1 = y;
+    } else if (x == "save") {
+      line[count].op = SAVE;
+      file >> y;
+      line[count].arg1 = y;
+    } else if (x == "set") {
+      line[count].op = SET;
+      file >> y;
+      line[count].arg1 = y;
+    } else if (x == "kp") {
+      line[count].op = KP;
+      file >> y;
+      line[count].arg1 = y;
+    }
+    count++;
+  }
+  return SUCCESS;
 }
 
-byte sub(byte a, byte b) {
-    return a-b;
+int preprocess(char *filename) {
+  ifstream in(filename);
+  ofstream out("tmp.prgm");
+  string str, str1;
+  while (!in.eof()) {
+    in >> str;
+
+    if (str[0] == '\'') {
+      out << ((short)str[1]);
+    } else if (str == "\n") {
+      continue;
+    }else {
+      out << str;
+    }
+    out << " ";
+  }
+  in.close();
+  out.close();
+  return SUCCESS;
 }
 
-int assemble(FILE *fp) {
-while () {
-
+int compile(char *filename) {
+  if (!preprocess(filename)) {
+    return FAILURE;
+  }
+  if (!assemble()) {
+    return FAILURE;
+  }
+  return SUCCESS;
 }
+
+int execute() {
+  while (line[mech.pc].op != END) {
+    if (line[mech.pc].op == OUT) {
+      putchar(mech.a);
+    } else if (line[mech.pc].op == IN) {
+      mech.a = getchar();
+    } else if (line[mech.pc].op == ADD) {
+      mech.a += line[mech.pc].arg1;
+    } else if (line[mech.pc].op == SUB) {
+      mech.a -= line[mech.pc].arg1;
+    } else if (line[mech.pc].op == OUT_N) {
+      cout << mech.a;
+    } else if (line[mech.pc].op == IN_N) {
+      cin >> mech.a;
+    } else if (line[mech.pc].op == JMP) {
+      mech.pc = line[mech.pc].arg1 - 1;
+    } else if (line[mech.pc].op == MOVE) {
+      mech.memory[line[mech.pc].arg2] = mech.memory[line[mech.pc].arg1];
+    } else if (line[mech.pc].op == LOAD) {
+      mech.a = mech.memory[line[mech.pc].arg1];
+    } else if (line[mech.pc].op == SAVE) {
+      mech.memory[line[mech.pc].arg1] = mech.a;
+    } else if (line[mech.pc].op == SET) {
+      mech.a = line[mech.pc].arg1;
+    }
+    mech.pc++;
+  }
+  return SUCCESS;
 }
 
-int main() {
-    printf("Romulus10's 8-bit machine.");
-    machine mech = (machine) {
-        .a = 0,
-        .x = 0,
-        .ir = 0,
-        .sp = 0,
-        .pc = 0,
-        .r1 = 0,
-        .r2 = 0,
-        .r3 = 0,
-        .r4 = 0,
-        .memory = malloc(MEM_LIM*sizeof(byte)),
-        .in_memory = malloc(MEM_LIM*sizeof(byte)),
-        .out_memory = malloc(MEM_LIM*sizeof(byte))
-    };
-    return 0;
+int main(int argc, char *argv[]) {
+  mech.a = 0;
+  mech.x = 0;
+  mech.sp = 0;
+  mech.pc = 0;
+  mech.memory = (short *)malloc(MEM_LIM * sizeof(short));
+  if (!compile(argv[1])) {
+    printf("An error occurred during reading.");
+  }
+  if (!execute()) {
+    printf("An error occurred during execution.");
+  }
+  cout << endl;
+  return 0;
 }

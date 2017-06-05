@@ -1,13 +1,16 @@
 CC=g++
-SRC=src/main.c
+SRC=src/main.cpp
 
 make:
-	mkdir -p build/release
-	$(CC) $(SRC) -o build/release/machine
+	$(CC) $(SRC) -o machine
 
 debug:
-	mkdir -p build/debug
-	$(CC) $(SRC) -g -o build/debug/machine
+	$(CC) $(SRC) -g -o machine
+
+cleanup:
+	clang-format src/main.cpp > tmp.txt
+	cat tmp.txt > src/main.cpp
+	rm tmp.txt
 
 clean:
 	rm -rf build
